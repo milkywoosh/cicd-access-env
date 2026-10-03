@@ -1,0 +1,31 @@
+secrets:
+  rabbitmq_password:
+    file: /opt/luke_msg_queue/secrets/rabbitmq_pw.txt # dari host VPS
+  rabbitmq_dial:
+    file: /opt/luke_msg_queue/secrets/rabbitmq_dial.txt # dari host VPS **note: username di dial dan .conf harus sama
+  rabbitmq_conf:
+    file: /opt/luke_msg_queue/secrets/rabbitmq.conf # utk config server awal
+services:
+  app-server:
+    build:
+      context: . # folder project
+      dockerfile: Dockerfile
+    container_name: go-access-ctl
+    restart: unless-stopped
+    env_file:
+      - ./app.env ## nanti subtitusi valuenya di handle di sisi config.go
+    environment:
+      # berasal dari Docker di-mount ke fs docker, dari hosts : opt
+      RABBITMQ_DIAL_FILE: /run/secrets/rabbitmq_dial
+      RABBITMQ_PASSWORD_FILE: /run/secrets/rabbitmq_password
+    secrets:
+      - rabbitmq_dial
+      - rabbitmq_password
+      - rabbitmq_conf
+    ports:
+      - "8006:8006"
+    networks:
+      - backend-access-ctl
+networks:
+  backend-access-ctl:
+    driver: bridge
